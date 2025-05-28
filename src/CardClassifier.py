@@ -84,7 +84,7 @@ train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
-num_epochs = 5
+num_epochs = 20
 train_losses, val_losses = [], []
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -129,6 +129,9 @@ for epoch in range(num_epochs):
     val_loss = running_loss / len(val_loader.dataset)
     val_losses.append(val_loss)
     print(f"Epoch {epoch+1}/{num_epochs} - Train loss: {train_loss}, Validation loss: {val_loss}")
+
+torch.save(model.state_dict(), 'card_classifier.pth')
+print("Model saved successfully")
 
 plt.plot(train_losses, label='Training loss')
 plt.plot(val_losses, label='Validation loss')
