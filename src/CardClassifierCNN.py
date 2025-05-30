@@ -161,3 +161,19 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
     print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, num_epochs, loss.item()))
+
+with torch.no_grad():
+    correct = 0
+    total = 0
+    for images, labels in train_loader:
+        images = images.to(device)
+        labels = labels.to(device)
+        outputs = model(images)
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+    print('Accuracy of the network on the {} train images: {} %'.format(265, 100 * correct / total))
+
+torch.save(model, 'card_classifier_model.pth')
+print("Model saved")
