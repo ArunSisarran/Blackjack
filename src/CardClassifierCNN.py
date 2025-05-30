@@ -7,7 +7,7 @@ import torchvision.transforms as transforms
 batch_size = 32
 num_classes = 53
 learning_rate = 0.001
-num_epochs = 20
+num_epochs = 40
 
 # Device to run the model on
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -137,7 +137,8 @@ class ConvNeuralNet(nn.Module):
 
         return x
 
-model = ConvNeuralNet(num_classes)
+
+model = ConvNeuralNet(num_classes).to(device)
 
 # Loss function
 criterion = nn.CrossEntropyLoss()
@@ -150,8 +151,8 @@ total_step = len(train_loader)
 # Training
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):
-        images=images.to(device)
-        labels=labels.to(device)
+        images = images.to(device)
+        labels = labels.to(device)
 
         outputs = model(images)
         loss = criterion(outputs, labels)
@@ -160,3 +161,19 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
     print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, num_epochs, loss.item()))
+
+with torch.no_grad():
+    correct = 0
+    total = 0
+    for images, labels in train_loader:
+        images = images.to(device)
+        labels = labels.to(device)
+        outputs = model(images)
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+    print('Accuracy of the network on the {} train images: {} %'.format(265, 100 * correct / total))
+
+torch.save(model, 'card_classifier_model.pth')
+print("Model saved")
