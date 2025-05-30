@@ -7,7 +7,7 @@ import torchvision.transforms as transforms
 batch_size = 32
 num_classes = 53
 learning_rate = 0.001
-num_epochs = 20
+num_epochs = 40
 
 # Device to run the model on
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
