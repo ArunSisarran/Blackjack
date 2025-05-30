@@ -137,7 +137,8 @@ class ConvNeuralNet(nn.Module):
 
         return x
 
-model = ConvNeuralNet(num_classes)
+
+model = ConvNeuralNet(num_classes).to(device)
 
 # Loss function
 criterion = nn.CrossEntropyLoss()
@@ -150,8 +151,8 @@ total_step = len(train_loader)
 # Training
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):
-        images=images.to(device)
-        labels=labels.to(device)
+        images = images.to(device)
+        labels = labels.to(device)
 
         outputs = model(images)
         loss = criterion(outputs, labels)
