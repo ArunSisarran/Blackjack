@@ -21,17 +21,14 @@ all_transfroms = transforms.Compose([transforms.Resize((128, 128)),
 
 # Creating Training Dataset
 train_dataset = torchvision.datasets.ImageFolder(root='../train/',
-                                                 train=True,
                                                  transform=all_transfroms)
 
 # Creating Testing Dataset
 test_dataset = torchvision.datasets.ImageFolder(root='../test/',
-                                                train=False,
                                                 transform=all_transfroms)
 
 # Creating Validation Dataset
 validation_dataset = torchvision.datasets.ImageFolder(root='../valid/',
-                                                      train=False,
                                                       transform=all_transfroms)
 
 # Creating the loader objects for processing
@@ -139,3 +136,27 @@ class ConvNeuralNet(nn.Module):
         x = self.fc3(x)
 
         return x
+
+model = ConvNeuralNet(num_classes)
+
+# Loss function
+criterion = nn.CrossEntropyLoss()
+
+# Optimizer
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, weight_decay=0.005, momentum=0.9)
+
+total_step = len(train_loader)
+
+# Training
+for epoch in range(num_epochs):
+    for i, (images, labels) in enumerate(train_loader):
+        images=images.to(device)
+        labels=labels.to(device)
+
+        outputs = model(images)
+        loss = criterion(outputs, labels)
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+    print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, num_epochs, loss.item()))
