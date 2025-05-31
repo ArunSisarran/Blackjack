@@ -162,6 +162,7 @@ for epoch in range(num_epochs):
         optimizer.step()
     print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, num_epochs, loss.item()))
 
+# Testing
 with torch.no_grad():
     correct = 0
     total = 0
@@ -175,5 +176,6 @@ with torch.no_grad():
 
     print('Accuracy of the network on the {} train images: {} %'.format(265, 100 * correct / total))
 
+# Save model
 torch.save(model, 'card_classifier_model.pth')
 print("Model saved")
