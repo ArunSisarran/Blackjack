@@ -144,7 +144,9 @@ model = ConvNeuralNet(num_classes).to(device)
 criterion = nn.CrossEntropyLoss()
 
 # Optimizer
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, weight_decay=0.005, momentum=0.9)
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, weight_decay=0.02, momentum=0.9)
+
+scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs, eta_min=1e-6)
 
 # Training with validation monitoring
 best_val_accuracy = 0.0
@@ -193,6 +195,7 @@ for epoch in range(num_epochs):
     val_accuracies.append(val_accuracy)
 
     print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {avg_train_loss:.4f}, Val Accuracy: {val_accuracy:.2f}%')
+    scheduler.step()
 
     # Save best model
     if val_accuracy > best_val_accuracy:
