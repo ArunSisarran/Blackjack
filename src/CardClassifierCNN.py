@@ -146,10 +146,19 @@ criterion = nn.CrossEntropyLoss()
 # Optimizer
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, weight_decay=0.005, momentum=0.9)
 
-total_step = len(train_loader)
+# Training with validation monitoring
+best_val_accuracy = 0.0
+train_losses = []
+val_accuracies = []
+patience = 5  # Early stopping patience
+patience_counter = 0
 
-# Training
+print("Starting training")
+
 for epoch in range(num_epochs):
+    # Training phase
+    model.train()
+    running_loss = 0.0
     for i, (images, labels) in enumerate(train_loader):
         images = images.to(device)
         labels = labels.to(device)
@@ -160,13 +169,59 @@ for epoch in range(num_epochs):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-    print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, num_epochs, loss.item()))
 
-# Testing
-with torch.no_grad():
+        running_loss += loss.item()
+
+    avg_train_loss = running_loss / len(train_loader)
+    train_losses.append(avg_train_loss)
+
+    # Validation phase
+    model.eval()
     correct = 0
     total = 0
-    for images, labels in train_loader:
+
+    with torch.no_grad():
+        for images, labels in valid_loader:
+            images = images.to(device)
+            labels = labels.to(device)
+            outputs = model(images)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+    val_accuracy = 100 * correct / total
+    val_accuracies.append(val_accuracy)
+
+    print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {avg_train_loss:.4f}, Val Accuracy: {val_accuracy:.2f}%')
+
+    # Save best model
+    if val_accuracy > best_val_accuracy:
+        best_val_accuracy = val_accuracy
+        torch.save({
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'epoch': epoch,
+            'val_accuracy': val_accuracy,
+            'train_loss': avg_train_loss
+        }, 'best_card_classifier.pth')
+        print(f'New best model saved. Validation accuracy: {val_accuracy:.2f}%')
+        patience_counter = 0
+    else:
+        patience_counter += 1
+        if patience_counter >= patience:
+            print(f'Early stopping triggered after {patience} epochs without improvement')
+            break
+
+print(f'\nTraining completed. Best validation accuracy: {best_val_accuracy:.2f}%')
+
+# Final evaluation on test set
+print("\nEvaluating on test set...")
+model.eval()
+correct = 0
+total = 0
+
+with torch.no_grad():
+    for images, labels in test_loader:
         images = images.to(device)
         labels = labels.to(device)
         outputs = model(images)
@@ -174,8 +229,5 @@ with torch.no_grad():
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
 
-    print('Accuracy of the network on the {} train images: {} %'.format(265, 100 * correct / total))
-
-# Save model
-torch.save(model, 'card_classifier_model.pth')
-print("Model saved")
+test_accuracy = 100 * correct / total
+print(f'Final test accuracy: {test_accuracy:.2f}%')
